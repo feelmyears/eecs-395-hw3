@@ -7,7 +7,7 @@ use std::collections::HashSet;
 //#[derive(Debug, PartialEq, Eq)]
 
 pub struct graph {
-    pub nodes: HashMap<String, Node>,
+    pub nodes: HashMap<String, HashSet<String>>
 }
 
 impl graph {
@@ -15,21 +15,30 @@ impl graph {
         let mut map = HashMap::new();
         for line in alist {
             let l: Vec<&str> = line.as_str().split(" ").collect();
-            let mut ns: Vec<String> = vec![];
-            for i in 1..l.len() {ns.push(l[i].to_string());}
-            let node = Node::new(l[0].to_string(), ns);
-            map.entry(l[0].to_string()).or_insert(node);
+            let mut ns = HashSet::new();
+            for i in 1..l.len() {ns.insert(l[i].to_string());}
+            // before adding key, makes sure key is in neighbor set of all neighbors
+            // if neighbors don't exist, add with set containing key
+            for n in &ns {
+                println!("{}->{}", l[0], n);
+                let mut newset = HashSet::new();
+                newset.insert(l[0].to_string());
+                (*map.entry(n.clone()).or_insert(newset)).insert(l[0].to_string());
+            }
+            //let mut nset = HashSet::new();
+            //for n in ns {nset.insert(n.to_string());}
+            map.entry(l[0].to_string()).or_insert(ns);
         }
         graph {
             nodes: map,
         }
     }
 
-    // iterates thru keys of hashmap to make sure all edges are accounted for
+    // prints each edge in an arbitrary order
     pub fn backtrack(self) {
         for (key, node) in self.nodes {
-            for n in node.neighbors {
-                &(self.nodes).get(&n).unwrap().neighbors.insert(key.clone());
+            for n in node {
+                //println!("{} -> {}", key, n);
             }
         }
     }
