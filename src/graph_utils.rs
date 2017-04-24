@@ -1,6 +1,6 @@
-use graph::{graph, Node};
+use graph::graph;
 
 pub fn build_graph(alist: Vec<String>) {
-    let mut graph = graph::new(alist);
-    graph.backtrack();
+    let graph = graph::new(alist);
+    graph.print_edges();
 }

@@ -1,11 +1,8 @@
-use std::io::BufRead;
 use std::string::String;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
 // ---------------------------------- GRAPH -----------------------------------------
-//#[derive(Debug, PartialEq, Eq)]
-
 pub struct graph {
     pub nodes: HashMap<String, HashSet<String>>
 }
@@ -20,14 +17,14 @@ impl graph {
             // before adding key, makes sure key is in neighbor set of all neighbors
             // if neighbors don't exist, add with set containing key
             for n in &ns {
-                println!("{}->{}", l[0], n);
                 let mut newset = HashSet::new();
                 newset.insert(l[0].to_string());
-                (*map.entry(n.clone()).or_insert(newset)).insert(l[0].to_string());
+                map.entry(n.clone()).or_insert(newset.clone()).insert(l[0].to_string());
             }
-            //let mut nset = HashSet::new();
-            //for n in ns {nset.insert(n.to_string());}
-            map.entry(l[0].to_string()).or_insert(ns);
+            for n in &ns {
+                map.entry(l[0].to_string()).or_insert(ns.clone()).insert(n.to_string());
+            }
+            
         }
         graph {
             nodes: map,
@@ -35,10 +32,11 @@ impl graph {
     }
 
     // prints each edge in an arbitrary order
-    pub fn backtrack(self) {
+    pub fn print_edges(self) {
+        println!("Result: ");
         for (key, node) in self.nodes {
             for n in node {
-                //println!("{} -> {}", key, n);
+                println!("{} -> {}", key, n);
             }
         }
     }
@@ -47,7 +45,7 @@ impl graph {
 // ---------------------------------- NODE ------------------------------------------
 
 //#[derive(Debug, PartialEq, Eq)]
-pub struct Node {
+/*pub struct Node {
     value: String,
     edges: usize,
     pub neighbors: HashSet<String>,
@@ -66,4 +64,4 @@ impl Node {
             neighbors: set,
         }
     }
-}
+}*/
