@@ -2,18 +2,19 @@ use std::io::{BufRead,BufReader,Read,stdin};
 use std::env;
 use std::fs::File;
 
-//extern crate regex;
-//use self::regex::Regex;
+mod graph;
+
+mod graph_utils;
+use graph_utils::build_graph;
 
 fn main() {
-    let corpus_reader = get_corpus_reader();
-    let alist = read_graph(corpus_reader);
-    for line in alist {
-        println!("{}", line);
-    }
+    let graph_reader = get_graph_reader();
+    let alist = read_graph(graph_reader);
+    
+    build_graph(alist);
 }
 
-fn get_corpus_reader() -> BufReader<File> {
+fn get_graph_reader() -> BufReader<File> {
 	let args: Vec<String> = env::args().collect();
 	let ref path = args[1];
 
@@ -23,7 +24,7 @@ fn get_corpus_reader() -> BufReader<File> {
 }
 
 fn read_graph<R: Read>(reader: R) -> Vec<String> {
-	let mut alist: Vec<String> = vec![];
+    let mut alist: Vec<String> = vec![];
     for line in BufReader::new(reader).lines() {
 	    let line = match line {
 	        Ok(line) => line,
