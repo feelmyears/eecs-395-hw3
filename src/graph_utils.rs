@@ -9,12 +9,16 @@ pub fn build_graph(alist: Vec<String>) -> graph {
 }
 
 pub fn search_graph(graph: graph) {
-    //graph.print_edges();
+    graph.print_edges();
     let stdin = stdin();
     let mut lines = stdin.lock().lines();
     while let Some(Ok(line)) = lines.next() {
         if line == "999" || line == "" {break;}
         let l: Vec<&str> = line.as_str().split(" ").collect(); // l[0] = start, l[1] = end
+        if l.len() > 2 {
+            print_result(None);
+            continue;
+        }
         // search and print
         // let path = fn returns Option<Path>
         //print_result(path);
@@ -23,7 +27,7 @@ pub fn search_graph(graph: graph) {
 
 fn print_result(path: Option<Path>) {
     if path.is_none() {
-        println!("There is no path between these values;");
+        println!("There is no path between these values.");
     }
     else {
         for node in path.unwrap() {
