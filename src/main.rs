@@ -1,3 +1,14 @@
+//! RUST GRAPH
+//! Homework 3
+//!
+//! This program takes an association list as input, as well as  
+//! a start and end point on the graph from user input.
+//! By constructing a specialized graph struct, the program searches
+//! for a path between the two identified points, then requests another
+//! pair. The program terminates when the user inputs a blank line or 
+//! 999.
+//!
+
 use std::io::{BufRead,BufReader,Read};
 use std::env;
 use std::fs::File;
@@ -12,7 +23,7 @@ fn main() {
     let alist = read_graph(graph_reader);
     
     let graph = build_graph(alist);
-    search_graph(graph);
+    search_graph(&graph);
 }
 
 fn get_graph_reader() -> BufReader<File> {

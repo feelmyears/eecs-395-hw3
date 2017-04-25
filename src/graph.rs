@@ -44,7 +44,7 @@ impl graph {
         }
     }
 
-    pub fn find_path(self, start: String, finish: String) -> Option<Path> {
+    pub fn find_path(&self, start: String, finish: String) -> Option<Path> {
         if !(self.nodes.contains_key(&start) && self.nodes.contains_key(&finish)) {
             None
         } else if start == finish {
@@ -118,7 +118,7 @@ impl graph {
             path.push(curr.to_string());
             curr = a.clone();
         }
-
+        path.push(start.clone());
         path.reverse();
         return path;
     }

@@ -8,8 +8,8 @@ pub fn build_graph(alist: Vec<String>) -> graph {
     return graph;
 }
 
-pub fn search_graph(graph: graph) {
-    graph.print_edges();
+pub fn search_graph(graph: &graph) {
+    //graph.print_edges();
     let stdin = stdin();
     let mut lines = stdin.lock().lines();
     while let Some(Ok(line)) = lines.next() {
@@ -19,9 +19,8 @@ pub fn search_graph(graph: graph) {
             print_result(None);
             continue;
         }
-        // search and print
-        // let path = fn returns Option<Path>
-        //print_result(path);
+        let path = graph.find_path(l[0].to_string(), l[1].to_string());
+        print_result(path);
     }
 }
 
