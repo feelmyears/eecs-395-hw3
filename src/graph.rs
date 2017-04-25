@@ -19,7 +19,7 @@ impl graph {
             for n in &ns {
                 let mut newset = HashSet::new();
                 newset.insert(l[0].to_string());
-                map.entry(n.clone()).or_insert(newset.clone()).insert(l[0].to_string());
+                map.entry(n.clone()).or_insert(newset).insert(l[0].to_string());
             }
             for n in &ns {
                 map.entry(l[0].to_string()).or_insert(ns.clone()).insert(n.to_string());
