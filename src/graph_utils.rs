@@ -56,7 +56,7 @@ mod build_tests {
         assert_eq!(8, edges); 
     }
 
-        #[test]
+    #[test]
     fn check_num_edges2() {
         let mut alist: Vec<String> = vec![];
         alist.push("a b d".to_string());
@@ -71,6 +71,34 @@ mod build_tests {
         // undirected graph, must account for reverse edges
         // i.e. d -> a is not input, but a -> d is, so there should be 2 edges
         assert_eq!(10, edges); 
+    }
+
+    #[test]
+    fn check_neighbors() {
+        let mut alist: Vec<String> = vec![];
+        alist.push("a b d".to_string());
+        alist.push("b a d".to_string());
+        alist.push("c".to_string());
+        alist.push("d c".to_string());
+        let graph = graph::new(alist);
+
+        for (key, val) in graph.nodes.iter() {
+            if key == "a" {assert_eq!(val.contains("b"), true);}
+            if key == "a" {assert_eq!(val.contains("d"), true);}
+            if key == "a" {assert_eq!(val.contains("c"), false);}
+
+            if key == "b" {assert_eq!(val.contains("a"), true);}
+            if key == "b" {assert_eq!(val.contains("c"), false);}
+            if key == "b" {assert_eq!(val.contains("d"), true);}
+
+            if key == "c" {assert_eq!(val.contains("a"), false);}
+            if key == "c" {assert_eq!(val.contains("b"), false);}
+            if key == "c" {assert_eq!(val.contains("d"), true);}
+
+            if key == "d" {assert_eq!(val.contains("a"), true);}
+            if key == "d" {assert_eq!(val.contains("b"), true);}
+            if key == "d" {assert_eq!(val.contains("c"), true);}
+        }
     }
 }
 
