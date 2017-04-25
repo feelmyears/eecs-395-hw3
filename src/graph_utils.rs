@@ -1,12 +1,42 @@
 use graph::graph;
+use std::io::{stdin, BufRead};
 
-pub fn build_graph(alist: Vec<String>) {
+type Path = Vec<String>;
+
+pub fn build_graph(alist: Vec<String>) -> graph {
     let graph = graph::new(alist);
-    graph.print_edges();
+    return graph;
 }
 
+pub fn search_graph(graph: graph) {
+    //graph.print_edges();
+    let stdin = stdin();
+    let mut lines = stdin.lock().lines();
+    while let Some(Ok(line)) = lines.next() {
+        if line == "999" || line == "" {break;}
+        let l: Vec<&str> = line.as_str().split(" ").collect(); // l[0] = start, l[1] = end
+        // search and print
+        // let path = fn returns Option<Path>
+        //print_result(path);
+    }
+}
+
+fn print_result(path: Option<Path>) {
+    if path.is_none() {
+        println!("There is no path between these values;");
+    }
+    else {
+        for node in path.unwrap() {
+            print!("{} ", node);
+        }
+        println!("");
+    }
+}
+
+// ---------------------------------- TESTS -----------------------------------------
+
 #[cfg(test)]
-mod build_test {
+mod build_tests {
     use graph::graph;
 
     #[test]
@@ -21,6 +51,30 @@ mod build_test {
         for node in graph.nodes.values() {
             edges += node.len();
         }
-        assert_eq!(8, edges); // undirected graph, must account for reverse edges
+        // undirected graph, must account for reverse edges
+        // i.e. d -> a is not input, but a -> d is, so there should be 2 edges
+        assert_eq!(8, edges); 
     }
+
+        #[test]
+    fn check_num_edges2() {
+        let mut alist: Vec<String> = vec![];
+        alist.push("a b d".to_string());
+        alist.push("b a d".to_string());
+        alist.push("c b".to_string());
+        alist.push("d c".to_string());
+        let graph = graph::new(alist);
+        let mut edges = 0;
+        for node in graph.nodes.values() {
+            edges += node.len();
+        }
+        // undirected graph, must account for reverse edges
+        // i.e. d -> a is not input, but a -> d is, so there should be 2 edges
+        assert_eq!(10, edges); 
+    }
+}
+
+#[cfg(test)]
+mod search_tests {
+
 }
