@@ -1,17 +1,18 @@
-use std::io::{BufRead,BufReader,Read,stdin};
+use std::io::{BufRead,BufReader,Read};
 use std::env;
 use std::fs::File;
 
 mod graph;
 
 mod graph_utils;
-use graph_utils::build_graph;
+use graph_utils::{build_graph, search_graph};
 
 fn main() {
     let graph_reader = get_graph_reader();
     let alist = read_graph(graph_reader);
     
-    build_graph(alist);
+    let graph = build_graph(alist);
+    search_graph(graph);
 }
 
 fn get_graph_reader() -> BufReader<File> {
