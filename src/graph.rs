@@ -9,6 +9,7 @@ pub struct Graph<T> {
     reverse_map: Vec<T>,
     edges: Vec<HashSet<usize>>
 }
+
 pub type Path<T> = Result<Option<Vec<T>>, &'static str>;
 
 impl <T: Hash + Eq + Clone> Graph<T> {
