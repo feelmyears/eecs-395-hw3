@@ -1,13 +1,13 @@
-//! RUST GRAPH
-//! Homework 3
+//! EECS 395
+//! Homework 3: Rust Graph
+//! By Andy McConnell
 //!
-//! This program takes an association list as input, as well as  
-//! a start and end point on the graph from user input.
-//! By constructing a specialized graph struct, the program searches
-//! for a path between the two identified points, then requests another
-//! pair. The program terminates when the user inputs a blank line or 
-//! 999.
+//! This program takes an association list as the first argument. Then takes in
+//! start and end nodes on the graph. If a path exists between the two points, the
+//! program will print out the shortest path between the two points. The program continues
+//! to take in two nodes until the user inputs a blank line.
 //!
+//! The graph assumes edges are undirected and that nodes have unique identifiers.
 
 use std::io::{stdin, BufRead, BufReader, Read};
 use std::env;
@@ -39,7 +39,7 @@ fn get_graph_reader() -> BufReader<File> {
 fn search_graph<R: Read>(reader: R, graph: &Graph<String>) {
     let mut lines = BufReader::new(reader).lines();
     while let Some(Ok(line)) = lines.next() {
-        if line == "999" || line == "" {
+        if line == "" {
             break;
         }
         

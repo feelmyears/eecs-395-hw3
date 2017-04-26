@@ -40,6 +40,7 @@ impl <T: Hash + Eq + Clone> Graph<T> {
         self.forward_map.contains_key(node)
     }
 
+
     pub fn contains_edge(&self, node1: &T, node2: &T) -> bool {
         self.edges[self.get_node_index(node1)].contains(&self.get_node_index(node2))
     }
@@ -322,7 +323,6 @@ mod graph_tests {
             (vec!["d".to_string(), "e".to_string()], true),
             (vec!["a".to_string(), "d".to_string()], false),
             (vec!["e".to_string(), "c".to_string()], false),
-            // (vec!["d".to_string(), "b".to_string()], None),
         ];
 
         let graph = construct_graph(nodes, edges);
