@@ -57,27 +57,27 @@ impl graph {
     fn shortest_path(&self, start: String, finish: String) -> Option<Path> {
         let mut ancestors: HashMap<String, Option<String>> = HashMap::new();
         let mut distances: HashMap<String, usize> = HashMap::new();
-        let mut unexplored: HashSet<String> = HashSet::new();
+        let mut remaining: HashSet<String> = HashSet::new();
 
         for node in self.nodes.keys() {
             ancestors.insert(node.clone(), None);
             distances.insert(node.clone(), MAX);
-            unexplored.insert(node.clone());
+            remaining.insert(node.clone());
         }
 
         *distances.entry(start.clone()).or_insert(0) = 0;
         
-        while !unexplored.is_empty() {
-            let next_node = self.get_next_node(&unexplored, &distances);
+        while !remaining.is_empty() {
+            let next_node = self.get_next_node(&remaining, &distances);
             
             if next_node == finish {
                 return Some(self.construct_path(start.clone(), finish.clone(), &ancestors));
             }
             
-            unexplored.remove(&next_node);
+            remaining.remove(&next_node);
             let ref neighbors = self.nodes[&next_node];
             for neighbor in neighbors {
-                if unexplored.contains(neighbor) {
+                if remaining.contains(neighbor) {
                     let new_dist: usize = distances[&next_node] + 1;
                     if new_dist < distances[neighbor] {
                         if let Some(d) = distances.get_mut(neighbor) {
@@ -96,11 +96,11 @@ impl graph {
         None
     }
 
-    fn get_next_node(&self, unexplored: &HashSet<String>, distances: &HashMap<String, usize>) -> String {
+    fn get_next_node(&self, remaining: &HashSet<String>, distances: &HashMap<String, usize>) -> String {
         let mut min_dist: usize = MAX;
         let mut min_node: Option<&str> = None;
 
-        for node in unexplored {
+        for node in remaining {
             if distances[node] <= min_dist {
                 min_dist = distances[node];
                 min_node = Some(node);

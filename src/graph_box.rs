@@ -43,6 +43,10 @@ impl <T: Hash + Eq + Clone> Graph<T> {
     }
 
     pub fn shortest_path(&self, start: &T, finish: &T) -> Option<Vec<T>> {
+        if !(self.contains_node(start) && self.contains_node(finish)) {
+            return None;
+        }
+
         let start_index = self.get_node_index(start);
         let finish_index = self.get_node_index(finish);
 
@@ -198,6 +202,7 @@ mod GraphTests {
         assert!(graph.contains_node(&node_name));
     }
 
+    #[test]
     fn contains_edge_test() {
         let node1_name = "Test1".to_string();
         let node2_name = "Test2".to_string();
