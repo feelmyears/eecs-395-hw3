@@ -5,8 +5,8 @@ use std::usize::MAX;
 use std::iter::FromIterator;
 
 pub struct Graph<T> {
-	forwardMap: HashMap<T, usize>,
-    reverseMap: Vec<T>,
+	forward_map: HashMap<T, usize>,
+    reverse_map: Vec<T>,
     edges: Vec<HashSet<usize>>
 }
 pub type Path<T> = Result<Option<Vec<T>>, &'static str>;
@@ -14,16 +14,16 @@ pub type Path<T> = Result<Option<Vec<T>>, &'static str>;
 impl <T: Hash + Eq + Clone> Graph<T> {
     pub fn new() -> Self {
     	Graph {
-    		forwardMap: HashMap::new(),
-            reverseMap: vec![],
+    		forward_map: HashMap::new(),
+            reverse_map: vec![],
             edges: vec![],
     	}
     }
 
     pub fn add_node(&mut self, node: T) {
-        if !self.forwardMap.contains_key(&node) {
-            self.forwardMap.insert(node.clone(), self.reverseMap.len());
-            self.reverseMap.push(node);
+        if !self.forward_map.contains_key(&node) {
+            self.forward_map.insert(node.clone(), self.reverse_map.len());
+            self.reverse_map.push(node);
             self.edges.push(HashSet::new());
         }
     }
@@ -37,7 +37,7 @@ impl <T: Hash + Eq + Clone> Graph<T> {
     }
 
     pub fn contains_node(&self, node: &T) -> bool {
-        self.forwardMap.contains_key(node)
+        self.forward_map.contains_key(node)
     }
 
     pub fn contains_edge(&self, node1: &T, node2: &T) -> bool {
@@ -63,11 +63,6 @@ impl <T: Hash + Eq + Clone> Graph<T> {
     
     fn path_exists(&self, start: &T, finish: &T) -> bool {
         return self.path_exists_recur(self.get_node_index(start), self.get_node_index(finish), HashSet::new());
-        // if !(self.contains_node(start) && self.contains_node(finish)) {
-        //     return false;
-        // } else {
-        //     return self.path_exists_recur(self.get_node_index(start), self.get_node_index(finish), HashSet::new());
-        // }
     }
 
     fn path_exists_recur(&self, start: usize, finish: usize, visited: HashSet<usize>) -> bool {
@@ -87,7 +82,7 @@ impl <T: Hash + Eq + Clone> Graph<T> {
     }
 
     fn shortest_index_path(&self, start: usize, finish: usize) -> Option<Vec<usize>> {
-        let num_nodes = self.reverseMap.len();
+        let num_nodes = self.reverse_map.len();
         let mut ancestors: Vec<Option<usize>> = Vec::with_capacity(num_nodes);
         let mut distances: Vec<usize> = Vec::with_capacity(num_nodes);
         let mut remaining: HashSet<usize> = HashSet::with_capacity(num_nodes);
@@ -104,7 +99,7 @@ impl <T: Hash + Eq + Clone> Graph<T> {
             remaining.remove(&n);
 
             if n == finish {
-                return Some(self.construct_index_path(start, finish, &ancestors));
+                return Some(self.construct_index_path(finish, &ancestors));
             }
 
             for &neighbor in &self.edges[n] {
@@ -135,7 +130,7 @@ impl <T: Hash + Eq + Clone> Graph<T> {
         return min_node;
     }
 
-    fn construct_index_path(&self, start: usize, finish: usize, ancestors: &Vec<Option<usize>>) -> Vec<usize> {
+    fn construct_index_path(&self, finish: usize, ancestors: &Vec<Option<usize>>) -> Vec<usize> {
         let mut path: Vec<usize> = vec![];
         let mut node = finish;
 
@@ -150,16 +145,16 @@ impl <T: Hash + Eq + Clone> Graph<T> {
     }
 
     fn get_node_index(&self, node: &T) -> usize {
-        self.forwardMap[node]
+        self.forward_map[node]
     }
 
     fn get_node_name(&self, index: usize) -> T {
-        self.reverseMap[index].clone()
+        self.reverse_map[index].clone()
     }
 }
 
 #[cfg(test)]
-mod GraphTests {
+mod graph_tests {
     use super::*;
 
     #[test]
@@ -167,14 +162,14 @@ mod GraphTests {
         let node_name = "Test".to_string();
         let mut graph = Graph::new();
 
-        assert!(!graph.forwardMap.contains_key(&node_name));
-        assert_eq!(0, graph.reverseMap.len());
+        assert!(!graph.forward_map.contains_key(&node_name));
+        assert_eq!(0, graph.reverse_map.len());
 
         graph.add_node(node_name.clone());
 
-        assert!(graph.forwardMap.contains_key(&node_name));
-        assert_eq!(0, graph.forwardMap[&node_name]);
-        assert_eq!(graph.reverseMap[0], node_name);
+        assert!(graph.forward_map.contains_key(&node_name));
+        assert_eq!(0, graph.forward_map[&node_name]);
+        assert_eq!(graph.reverse_map[0], node_name);
     }
 
     #[test]
@@ -186,8 +181,8 @@ mod GraphTests {
         graph.add_node(node1_name.clone());
         graph.add_node(node2_name.clone());
 
-        assert_eq!(0, graph.forwardMap[&node1_name]);
-        assert_eq!(1, graph.forwardMap[&node2_name]);
+        assert_eq!(0, graph.forward_map[&node1_name]);
+        assert_eq!(1, graph.forward_map[&node2_name]);
 
         graph.add_edge(&node1_name, &node2_name);
 
@@ -240,8 +235,8 @@ mod GraphTests {
         graph.add_node(node1_name.clone());
         graph.add_node(node2_name.clone());
 
-        assert_eq!(0, graph.forwardMap[&node1_name]);
-        assert_eq!(1, graph.forwardMap[&node2_name]);
+        assert_eq!(0, graph.forward_map[&node1_name]);
+        assert_eq!(1, graph.forward_map[&node2_name]);
 
         graph.add_edge(&node1_name, &node2_name);
 

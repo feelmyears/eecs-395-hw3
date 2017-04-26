@@ -22,7 +22,7 @@ use graph_builder::build_graph;
 
 fn main() {
     let graph_reader = get_graph_reader();
-    let graph: Graph<String> = graph_builder::build_graph(graph_reader);
+    let graph: Graph<String> = build_graph(graph_reader);
 
     search_graph(stdin(), &graph);
 }
