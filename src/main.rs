@@ -15,7 +15,7 @@ use std::fs::File;
 use std::string::String;
 
 mod graph;
-use graph::Graph;
+use graph::{Graph, Path};
 
 mod graph_builder;
 use graph_builder::build_graph;
@@ -55,9 +55,13 @@ fn search_graph<R: Read>(reader: R, graph: &Graph<String>) {
     }
 }
 
-fn print_result(path: Option<Vec<String>>) {
-    match path {
-        Some(p) => println!("{}", p.join(" ")),
-        None => println!("There is no path between these values."),
+fn print_result(path: Path<String>) {
+    if path.is_err() {
+        println!("{}", path.unwrap_err());
+    } else {
+        match path.unwrap() {
+            Some(p) => println!("{}", p.join(" ")),
+            _ => println!("There is no path between these nodes."),
+        }
     }
 }

@@ -2,12 +2,14 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::cmp::Eq;
 use std::usize::MAX;
+use std::iter::FromIterator;
 
 pub struct Graph<T> {
 	forwardMap: HashMap<T, usize>,
     reverseMap: Vec<T>,
     edges: Vec<HashSet<usize>>
 }
+pub type Path<T> = Result<Option<Vec<T>>, &'static str>;
 
 impl <T: Hash + Eq + Clone> Graph<T> {
     pub fn new() -> Self {
@@ -42,9 +44,11 @@ impl <T: Hash + Eq + Clone> Graph<T> {
         self.edges[self.get_node_index(node1)].contains(&self.get_node_index(node2))
     }
 
-    pub fn shortest_path(&self, start: &T, finish: &T) -> Option<Vec<T>> {
-        if !self.path_exists(start, finish) {
-            return None;
+    pub fn shortest_path(&self, start: &T, finish: &T) -> Path<T> where T: FromIterator<T> {
+        if !(self.contains_node(start) && self.contains_node(finish)) {
+            return Err("Invalid node choice. At least one node does not exist.");
+        } else if !self.path_exists(start, finish) {
+            return Ok(None);
         }
 
         let start_index = self.get_node_index(start);
@@ -52,17 +56,18 @@ impl <T: Hash + Eq + Clone> Graph<T> {
 
         let index_path = self.shortest_index_path(start_index, finish_index);
         match index_path {
-            Some(path) => Some(path.iter().map(|&i| self.get_node_name(i)).collect()),
-            None => None,
+            Some(path) => Ok(Some(path.iter().map(|&i| self.get_node_name(i)).collect())),
+            None => Ok(None),
         }
     }
     
     fn path_exists(&self, start: &T, finish: &T) -> bool {
-        if !(self.contains_node(start) && self.contains_node(finish)) {
-            return false;
-        } else {
-            return self.path_exists_recur(self.get_node_index(start), self.get_node_index(finish), HashSet::new());
-        }
+        return self.path_exists_recur(self.get_node_index(start), self.get_node_index(finish), HashSet::new());
+        // if !(self.contains_node(start) && self.contains_node(finish)) {
+        //     return false;
+        // } else {
+        //     return self.path_exists_recur(self.get_node_index(start), self.get_node_index(finish), HashSet::new());
+        // }
     }
 
     fn path_exists_recur(&self, start: usize, finish: usize, visited: HashSet<usize>) -> bool {
@@ -347,7 +352,7 @@ mod GraphTests {
 
     fn assert_shortest_paths(graph: Graph<String>, paths: Vec<(Vec<String>, Option<Vec<String>>)>) {
         for (input, expected) in paths {
-            assert_eq!(graph.shortest_path(&input[0], &input[1]), expected);
+            assert_eq!(graph.shortest_path(&input[0], &input[1]).unwrap(), expected);
         }
     }
 }
