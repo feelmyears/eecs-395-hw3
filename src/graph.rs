@@ -43,7 +43,7 @@ impl <T: Hash + Eq + Clone> Graph<T> {
     }
 
     pub fn shortest_path(&self, start: &T, finish: &T) -> Option<Vec<T>> {
-        if !(self.contains_node(start) && self.contains_node(finish)) {
+        if !self.path_exists(start, finish) {
             return None;
         }
 
@@ -54,6 +54,30 @@ impl <T: Hash + Eq + Clone> Graph<T> {
         match index_path {
             Some(path) => Some(path.iter().map(|&i| self.get_node_name(i)).collect()),
             None => None,
+        }
+    }
+    
+    fn path_exists(&self, start: &T, finish: &T) -> bool {
+        if !(self.contains_node(start) && self.contains_node(finish)) {
+            return false;
+        } else {
+            return self.path_exists_recur(self.get_node_index(start), self.get_node_index(finish), HashSet::new());
+        }
+    }
+
+    fn path_exists_recur(&self, start: usize, finish: usize, visited: HashSet<usize>) -> bool {
+        if start == finish {
+            return true;
+        } else {
+            let mut path_exists = false;
+            for &neighbor in &self.edges[start] {
+                if !visited.contains(&neighbor) {
+                    let mut new_visited = visited.clone();
+                    new_visited.insert(neighbor);
+                    path_exists = path_exists || self.path_exists_recur(neighbor, finish, new_visited);
+                }
+            }
+            return path_exists;
         }
     }
 
@@ -218,5 +242,112 @@ mod GraphTests {
 
         assert!(graph.contains_edge(&node1_name, &node2_name));
         assert!(graph.contains_edge(&node2_name, &node1_name));
+    }
+
+    #[test]
+    fn connected_shortest_path_test() {
+        let nodes = vec![
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+            "e".to_string(),
+        ];
+
+        let edges = vec![
+            ("a".to_string(), "b".to_string()),
+            ("a".to_string(), "d".to_string()),
+            ("b".to_string(), "c".to_string()),
+            ("c".to_string(), "e".to_string()),
+            ("d".to_string(), "e".to_string()),
+        ];
+
+        let paths = vec![
+            (vec!["a".to_string(), "b".to_string()], Some(vec!["a".to_string(), "b".to_string()])),
+            (vec!["a".to_string(), "c".to_string()], Some(vec!["a".to_string(), "b".to_string(), "c".to_string()])),
+            (vec!["e".to_string(), "a".to_string()], Some(vec!["e".to_string(), "d".to_string(), "a".to_string()])),
+            (vec!["c".to_string(), "d".to_string()], Some(vec!["c".to_string(), "e".to_string(), "d".to_string()])),
+        ];
+
+        let graph = construct_graph(nodes, edges);
+        assert_shortest_paths(graph, paths);
+    }
+
+    #[test]
+    fn disjoint_shortest_path_test() {
+        let nodes = vec![
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+            "e".to_string(),
+        ];
+
+        let edges = vec![
+            ("a".to_string(), "b".to_string()),
+            ("b".to_string(), "c".to_string()),
+            ("d".to_string(), "e".to_string()),
+        ];
+
+        let paths = vec![
+            (vec!["a".to_string(), "e".to_string()], None),
+            (vec!["c".to_string(), "d".to_string()], None),
+            (vec!["d".to_string(), "b".to_string()], None),
+        ];
+
+        let graph = construct_graph(nodes, edges);
+        assert_shortest_paths(graph, paths);
+    }
+
+    #[test]
+    fn path_exists_tests() {
+        let nodes = vec![
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+            "e".to_string(),
+        ];
+
+        let edges = vec![
+            ("a".to_string(), "b".to_string()),
+            ("a".to_string(), "c".to_string()),
+            ("d".to_string(), "e".to_string()),
+        ];
+
+        let paths = vec![
+            (vec!["a".to_string(), "b".to_string()], true),
+            (vec!["c".to_string(), "b".to_string()], true),
+            (vec!["c".to_string(), "a".to_string()], true),
+            (vec!["d".to_string(), "e".to_string()], true),
+            (vec!["a".to_string(), "d".to_string()], false),
+            (vec!["e".to_string(), "c".to_string()], false),
+            // (vec!["d".to_string(), "b".to_string()], None),
+        ];
+
+        let graph = construct_graph(nodes, edges);
+        for (input, expected) in paths {
+            assert_eq!(graph.path_exists(&input[0], &input[1]), expected);
+        }
+    }
+
+    fn construct_graph(nodes: Vec<String>, edges: Vec<(String, String)>) -> Graph<String> {
+        let mut graph: Graph<String> = Graph::new();
+
+        for n in nodes {
+            graph.add_node(n);
+        }
+
+        for (n1, n2) in edges {
+            graph.add_edge(&n1, &n2);
+        }
+
+        return graph;
+    }
+
+    fn assert_shortest_paths(graph: Graph<String>, paths: Vec<(Vec<String>, Option<Vec<String>>)>) {
+        for (input, expected) in paths {
+            assert_eq!(graph.shortest_path(&input[0], &input[1]), expected);
+        }
     }
 }
