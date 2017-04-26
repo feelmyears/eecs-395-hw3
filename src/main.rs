@@ -7,7 +7,9 @@
 //! program will print out the shortest path between the two points. The program continues
 //! to take in two nodes until the user inputs a blank line.
 //!
-//! The graph assumes edges are undirected and that nodes have unique identifiers.
+//! The graph structure makes the following assumptions:
+//!     -   Edges are undirected and that nodes have unique identifiers. 
+//!     -   There can be a maximum for std::usize::MAX + 1 nodes in the graph
 
 use std::io::{stdin, BufRead, BufReader, Read};
 use std::env;
