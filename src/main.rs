@@ -18,6 +18,12 @@ mod graph;
 mod graph_utils;
 use graph_utils::{build_graph, search_graph};
 
+mod graph_box;
+use graph_box::*;
+
+mod graph_builder;
+use graph_builder::*;
+
 fn main() {
     let graph_reader = get_graph_reader();
     let alist = read_graph(graph_reader);

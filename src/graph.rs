@@ -123,27 +123,3 @@ impl graph {
         return path;
     }
 }
-
-// ---------------------------------- NODE ------------------------------------------
-
-//#[derive(Debug, PartialEq, Eq)]
-/*pub struct Node {
-    value: String,
-    edges: usize,
-    pub neighbors: HashSet<String>,
-}
-
-impl Node {
-
-    fn new(val: String, ns: Vec<String>) -> Self {
-        let mut set = HashSet::new();
-        for n in ns {
-            set.insert(n);
-        }
-        Node {
-            value: val,
-            edges: set.len(),
-            neighbors: set,
-        }
-    }
-}*/
