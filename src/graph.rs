@@ -1,125 +1,222 @@
-use std::string::String;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
+use std::cmp::Eq;
 use std::usize::MAX;
 
-// ---------------------------------- GRAPH -----------------------------------------
-pub struct graph {
-    pub nodes: HashMap<String, HashSet<String>>
+pub struct Graph<T> {
+	forwardMap: HashMap<T, usize>,
+    reverseMap: Vec<T>,
+    edges: Vec<HashSet<usize>>
 }
 
-type Path = Vec<String>;
+impl <T: Hash + Eq + Clone> Graph<T> {
+    pub fn new() -> Self {
+    	Graph {
+    		forwardMap: HashMap::new(),
+            reverseMap: vec![],
+            edges: vec![],
+    	}
+    }
 
-impl graph {
-    pub fn new(alist: Vec<String>) -> Self {
-        let mut map = HashMap::new();
-        for line in alist {
-            let l: Vec<&str> = line.as_str().split(" ").collect();
-            let mut ns = HashSet::new();
-            for i in 1..l.len() {ns.insert(l[i].to_string());}
-            // before adding key, makes sure key is in neighbor set of all neighbors
-            // if neighbors don't exist, add with set containing key
-            for n in &ns {
-                let mut newset = HashSet::new();
-                newset.insert(l[0].to_string());
-                map.entry(n.clone()).or_insert(newset).insert(l[0].to_string());
-            }
-            for n in &ns {
-                map.entry(l[0].to_string()).or_insert(ns.clone()).insert(n.to_string());
-            }
-            
-        }
-        graph {
-            nodes: map,
+    pub fn add_node(&mut self, node: T) {
+        if !self.forwardMap.contains_key(&node) {
+            self.forwardMap.insert(node.clone(), self.reverseMap.len());
+            self.reverseMap.push(node);
+            self.edges.push(HashSet::new());
         }
     }
 
-    // prints each edge in an arbitrary order
-    pub fn print_edges(self) {
-        println!("Result: ");
-        for (key, node) in self.nodes {
-            for n in node {
-                println!("{} -> {}", key, n);
-            }
+    pub fn add_edge(&mut self, node1: &T, node2: &T) {
+        let node1_index = self.get_node_index(node1);
+        let node2_index = self.get_node_index(node2);
+
+        self.edges[node1_index].insert(node2_index);
+        self.edges[node2_index].insert(node1_index);
+    }
+
+    pub fn contains_node(&self, node: &T) -> bool {
+        self.forwardMap.contains_key(node)
+    }
+
+    pub fn contains_edge(&self, node1: &T, node2: &T) -> bool {
+        self.edges[self.get_node_index(node1)].contains(&self.get_node_index(node2))
+    }
+
+    pub fn shortest_path(&self, start: &T, finish: &T) -> Option<Vec<T>> {
+        if !(self.contains_node(start) && self.contains_node(finish)) {
+            return None;
+        }
+
+        let start_index = self.get_node_index(start);
+        let finish_index = self.get_node_index(finish);
+
+        let index_path = self.shortest_index_path(start_index, finish_index);
+        match index_path {
+            Some(path) => Some(path.iter().map(|&i| self.get_node_name(i)).collect()),
+            None => None,
         }
     }
 
-    pub fn find_path(&self, start: String, finish: String) -> Option<Path> {
-        if !(self.nodes.contains_key(&start) && self.nodes.contains_key(&finish)) {
-            None
-        } else if start == finish {
-            Some(vec![start.clone()])
-        } else {
-            self.shortest_path(start.clone(), finish.clone())
-        }
-    }
+    fn shortest_index_path(&self, start: usize, finish: usize) -> Option<Vec<usize>> {
+        let num_nodes = self.reverseMap.len();
+        let mut ancestors: Vec<Option<usize>> = Vec::with_capacity(num_nodes);
+        let mut distances: Vec<usize> = Vec::with_capacity(num_nodes);
+        let mut remaining: HashSet<usize> = HashSet::with_capacity(num_nodes);
 
-    fn shortest_path(&self, start: String, finish: String) -> Option<Path> {
-        let mut ancestors: HashMap<String, Option<String>> = HashMap::new();
-        let mut distances: HashMap<String, usize> = HashMap::new();
-        let mut remaining: HashSet<String> = HashSet::new();
-
-        for node in self.nodes.keys() {
-            ancestors.insert(node.clone(), None);
-            distances.insert(node.clone(), MAX);
-            remaining.insert(node.clone());
+        for i in 0 .. num_nodes {
+            ancestors.push(None);
+            distances.push(MAX);
+            remaining.insert(i);
         }
 
-        *distances.entry(start.clone()).or_insert(0) = 0;
-        
+        distances[start] = 0;
         while !remaining.is_empty() {
-            let next_node = self.get_next_node(&remaining, &distances);
-            
-            if next_node == finish {
-                return Some(self.construct_path(start.clone(), finish.clone(), &ancestors));
-            }
-            
-            remaining.remove(&next_node);
-            let ref neighbors = self.nodes[&next_node];
-            for neighbor in neighbors {
-                if remaining.contains(neighbor) {
-                    let new_dist: usize = distances[&next_node] + 1;
-                    if new_dist < distances[neighbor] {
-                        if let Some(d) = distances.get_mut(neighbor) {
-							*d = new_dist;	
-						}
+            let n = self.get_next_node_index(&distances, &remaining);
+            remaining.remove(&n);
 
-						if let Some(a) = ancestors.get_mut(neighbor) {
-							*a = Some(next_node.clone());
-						}	
-                    }
-                }		
+            if n == finish {
+                return Some(self.construct_index_path(start, finish, &ancestors));
             }
-            
+
+            for &neighbor in &self.edges[n] {
+                if remaining.contains(&neighbor) {
+                    let new_dist: usize = distances[n] + 1;
+                    if new_dist < distances[neighbor] {
+                        distances[neighbor] = new_dist;
+                        ancestors[neighbor] = Some(n);
+                    }
+                }
+            }
         }
 
         None
     }
 
-    fn get_next_node(&self, remaining: &HashSet<String>, distances: &HashMap<String, usize>) -> String {
+    fn get_next_node_index(&self, distances: &Vec<usize>, remaining: &HashSet<usize>) -> usize {
         let mut min_dist: usize = MAX;
-        let mut min_node: Option<&str> = None;
+        let mut min_node: usize = 0;
 
-        for node in remaining {
+        for &node in remaining {
             if distances[node] <= min_dist {
                 min_dist = distances[node];
-                min_node = Some(node);
+                min_node = node;
             }
         }
 
-        return min_node.unwrap().to_string();
+        return min_node;
     }
 
-    fn construct_path(&self, start: String, finish: String, ancestors: &HashMap<String, Option<String>>) -> Path {
-        let mut path = Path::new();
-        let mut curr = finish;
+    fn construct_index_path(&self, start: usize, finish: usize, ancestors: &Vec<Option<usize>>) -> Vec<usize> {
+        let mut path: Vec<usize> = vec![];
+        let mut node = finish;
 
-        while let Some(ref a) = ancestors[&curr] {
-            path.push(curr.to_string());
-            curr = a.clone();
+        while let Some(ancestor) = ancestors[node] {
+            path.push(node);
+            node = ancestor;
         }
-        path.push(start.clone());
+
+        path.push(node);
         path.reverse();
         return path;
+    }
+
+    fn get_node_index(&self, node: &T) -> usize {
+        self.forwardMap[node]
+    }
+
+    fn get_node_name(&self, index: usize) -> T {
+        self.reverseMap[index].clone()
+    }
+}
+
+#[cfg(test)]
+mod GraphTests {
+    use super::*;
+
+    #[test]
+    fn add_node_test() {
+        let node_name = "Test".to_string();
+        let mut graph = Graph::new();
+
+        assert!(!graph.forwardMap.contains_key(&node_name));
+        assert_eq!(0, graph.reverseMap.len());
+
+        graph.add_node(node_name.clone());
+
+        assert!(graph.forwardMap.contains_key(&node_name));
+        assert_eq!(0, graph.forwardMap[&node_name]);
+        assert_eq!(graph.reverseMap[0], node_name);
+    }
+
+    #[test]
+    fn add_edge_test() {
+        let node1_name = "Test1".to_string();
+        let node2_name = "Test2".to_string();
+        let mut graph = Graph::new();
+
+        graph.add_node(node1_name.clone());
+        graph.add_node(node2_name.clone());
+
+        assert_eq!(0, graph.forwardMap[&node1_name]);
+        assert_eq!(1, graph.forwardMap[&node2_name]);
+
+        graph.add_edge(&node1_name, &node2_name);
+
+        assert!(graph.edges[0].contains(&1));
+        assert!(graph.edges[1].contains(&0));
+    }
+
+    #[test]
+    fn get_node_index_test() {
+        let node1_name = "Test1".to_string();
+        let node2_name = "Test2".to_string();
+        let mut graph = Graph::new();
+
+        graph.add_node(node1_name.clone());
+        graph.add_node(node2_name.clone());
+
+        assert_eq!(0, graph.get_node_index(&node1_name));
+        assert_eq!(1, graph.get_node_index(&node2_name));
+    }
+
+    #[test]
+    fn get_node_name_test() {
+        let node1_name = "Test1".to_string();
+        let node2_name = "Test2".to_string();
+        let mut graph = Graph::new();
+
+        graph.add_node(node1_name.clone());
+        graph.add_node(node2_name.clone());
+
+        assert_eq!(node1_name, graph.get_node_name(0));
+        assert_eq!(node2_name, graph.get_node_name(1));
+    }
+
+    #[test]
+    fn contains_node_test() {
+        let node_name = "Test1".to_string();
+        let mut graph = Graph::new();
+
+        graph.add_node(node_name.clone());
+
+        assert!(graph.contains_node(&node_name));
+    }
+
+    #[test]
+    fn contains_edge_test() {
+        let node1_name = "Test1".to_string();
+        let node2_name = "Test2".to_string();
+        let mut graph = Graph::new();
+
+        graph.add_node(node1_name.clone());
+        graph.add_node(node2_name.clone());
+
+        assert_eq!(0, graph.forwardMap[&node1_name]);
+        assert_eq!(1, graph.forwardMap[&node2_name]);
+
+        graph.add_edge(&node1_name, &node2_name);
+
+        assert!(graph.contains_edge(&node1_name, &node2_name));
+        assert!(graph.contains_edge(&node2_name, &node1_name));
     }
 }

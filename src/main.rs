@@ -14,8 +14,8 @@ use std::env;
 use std::fs::File;
 use std::string::String;
 
-mod graph_box;
-use graph_box::Graph;
+mod graph;
+use graph::Graph;
 
 mod graph_builder;
 use graph_builder::build_graph;

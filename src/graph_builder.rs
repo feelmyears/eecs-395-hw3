@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader, Read};
 extern crate regex;
 use self::regex::Regex;
 
-use graph_box::Graph;
+use graph::Graph;
 
 pub fn build_graph<R: Read>(reader: R) -> Graph<String> {
 	let mut graph: Graph<String> = Graph::new();
